@@ -254,7 +254,7 @@ def part1q2():
         num_figures = (n + 19) // 20  # Divide trajectories into groups of 20
         for fig_idx in range(num_figures):
             plt.figure(figsize=(12, 6))
-            start_idx = fig_idx * 20 m
+            start_idx = fig_idx * 20 
             end_idx = min(start_idx + 20, n)
             for i in range(start_idx, end_idx):
                 plt.plot(t, X[i], label=f"x_{i}")
