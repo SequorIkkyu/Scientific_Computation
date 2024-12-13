@@ -173,8 +173,8 @@ def part1q1b():
     e_tT = np.sum(perturbatio[:, -1] ** 2)  
     eratio_simulation = e_tT / e_t0  
 
-    print(f"Linear analysis predicted energy ratio: {eratio_linear:.4f}")
-    print(f"Simulation computed energy ratio: {eratio_simulation:.4f}")
+    print(f"Linear: {eratio_linear}")
+    print(f"Simulate1: {eratio_simulation}")
 
     e_over_time = np.sum(perturbatio**2, axis=0)/e_t0
     plt.plot(t, e_over_time)
@@ -209,7 +209,6 @@ def part1q1c():
     ax1.set_xlabel('T')
     ax1.set_ylabel('Max e(T)/e(0)', color='blue')
     ax1.tick_params(axis='y', labelcolor='blue')
-    ax1.set_title('Variation of Max Energy Growth Ratio with T')
     ax1.grid(True)
 
     fig, ax2 = plt.subplots(figsize=(8, 6))
@@ -218,7 +217,6 @@ def part1q1c():
     ax2.set_xlabel("T")
     ax2.set_ylabel("Max e(T)/e(0)", color="blue")
     ax2.tick_params(axis="y", labelcolor="blue")
-    ax2.set_title("Variation of Max Energy Growth Ratio with T")
     ax2.grid(True)
 
     return None #modify if needed
@@ -436,7 +434,8 @@ def fd2(f):
 
 from scipy.linalg import solve_banded
 
-def part2q1(f,h):
+
+def part2q1(f, h):
     """
     Part 2, question 1
     Input:
@@ -445,77 +444,73 @@ def part2q1(f,h):
         df, d2f: m x n arrays containing 1st and 2nd derivatives of f with respect to x
         computed with implicit fd scheme
     """
-    # use code below if/as needed
-    m,n = f.shape
-    h = 1/(n-1)
-    x = np.linspace(0,1,n)
-    y = np.linspace(0,1,m)
-    df = np.zeros_like(f) #modify as needed
-    d2f = np.zeros_like(f) #modify as needed
-
-    # Add code here
-    # Coefficients for equations
-    L1 = [7, h, 16, 0, 7, -h]
-    L2 = [-9, -h, 0, 8 * h, 9, -h]
-    L1b = [1, 0, 2, -h]
-    L2b = [0, h, -6, 5 * h]
-    L1b2 = [2, h, 1, 0]
-    L2b2 = [-6, -5 * h, 0, -h]
-
-    eqn = 2 * n
-    lower = 3
-    upper = 3
-    ab = np.zeros((lower + upper + 1, eqn))
-
-    # Band matrix
-    for i in range(n):
-        if i == 0:
-            for j, val in enumerate(L1b):
-                diag = upper + (0 - j)
-                if 0 <= diag < ab.shape[0]:
-                    ab[diag, j] += val
-
-            for j, val in enumerate(L2b):
-                diag = upper + (1 - j)
-                if 0 <= diag < ab.shape[0]:
-                    ab[diag, j] += val
-
-        elif i == n - 1:
-            for j, val in enumerate(L1b2):
-                col = eqn - 4 + j
-                diag = upper + ((2 * n - 2) - col)
-                if 0 <= diag < ab.shape[0]:
-                    ab[diag, col] += val
-
-            for j, val in enumerate(L2b2):
-                col = eqn - 4 + j
-                diag = upper + ((2 * n - 1) - col)
-                if 0 <= diag < ab.shape[0]:
-                    ab[diag, col] += val
-
-        else:
-            for j, val in enumerate(L1):
-                col = 2 * i - 2 + j
-                diag = upper + ((2 * i) - col)
-                if 0 <= diag < ab.shape[0]:
-                    ab[diag, col] += val
-
-            for j, val in enumerate(L2):
-                col = 2 * i - 2 + j
-                diag = upper + ((2 * i + 1) - col)
-                if 0 <= diag < ab.shape[0]:
-                    ab[diag, col] += val
-
-    # RHS coefficients
-    c31, c22 = 15 / h, 24 / h
-    cb11, cb21, cb31 = -3.5 / h, 4 / h, -0.5 / h
-    cb12, cb22, cb32 = 9 / h, -12 / h, 3 / h
+    m, n = f.shape
+    h = 1 / (n - 1)
+    x = np.linspace(0, 1, n)
+    y = np.linspace(0, 1, m)
 
     df = np.zeros_like(f)
     d2f = np.zeros_like(f)
 
+    rows, rows1 = 3, 3
+    cols = 2 * n
+    band_matrix = np.zeros((rows + rows1 + 1, cols))
+
+    for idx in range(n):
+        if idx == 0:
+            boundary_coeff_1 = [1, 0, 2, -h]
+            boundary_coeff_2 = [0, h, -6, 5 * h]
+
+            for offset, value in enumerate(boundary_coeff_1):
+                diag_idx = rows + (0 - offset)
+                if 0 <= diag_idx < band_matrix.shape[0]:
+                    band_matrix[diag_idx, offset] += value
+
+            for offset, value in enumerate(boundary_coeff_2):
+                diag_idx = rows + (1 - offset)
+                if 0 <= diag_idx < band_matrix.shape[0]:
+                    band_matrix[diag_idx, offset] += value
+
+        elif idx == n - 1:
+            boundary_coeff_3 = [2, h, 1, 0]
+            boundary_coeff_4 = [-6, -5 * h, 0, -h]
+
+            for offset, value in enumerate(boundary_coeff_3):
+                column = cols - 4 + offset
+                diag_idx = rows + ((2 * n - 2) - column)
+                if 0 <= diag_idx < band_matrix.shape[0]:
+                    band_matrix[diag_idx, column] += value
+
+            for offset, value in enumerate(boundary_coeff_4):
+                column = cols - 4 + offset
+                diag_idx = rows + ((2 * n - 1) - column)
+                if 0 <= diag_idx < band_matrix.shape[0]:
+                    band_matrix[diag_idx, column] += value
+
+        else:
+            coeff_1 = [7, h, 16, 0, 7, -h]
+            coeff_2 = [-9, -h, 0, 8 * h, 9, -h]
+
+            for offset, value in enumerate(coeff_1):
+                column = 2 * idx - 2 + offset
+                diag_idx = rows + ((2 * idx) - column)
+                if 0 <= diag_idx < band_matrix.shape[0]:
+                    band_matrix[diag_idx, column] += value
+
+            for offset, value in enumerate(coeff_2):
+                column = 2 * idx - 2 + offset
+                diag_idx = rows + ((2 * idx + 1) - column)
+                if 0 <= diag_idx < band_matrix.shape[0]:
+                    band_matrix[diag_idx, column] += value
+
+    # Define RHS coefficients
+    c31, c22 = 15 / h, 24 / h
+    cb11, cb21, cb31 = -3.5 / h, 4 / h, -0.5 / h
+    cb12, cb22, cb32 = 9 / h, -12 / h, 3 / h
+
     for i in range(m):
-        b = np.zeros(eqn)
+        b = np.zeros(cols)
+
         for j in range(n):
             if j == 0:
                 b[0] += cb11 * f[i, j] + cb21 * f[i, j + 1] + cb31 * f[i, j + 2]
@@ -531,11 +526,14 @@ def part2q1(f,h):
                 b[2 * j] += c31 * (f[i, j + 1] - f[i, j - 1])
                 b[2 * j + 1] += c22 * (f[i, j - 1] - 2 * f[i, j] + f[i, j + 1])
 
-        res_x = solve_banded((lower, upper), ab, b)
+        # Solve the banded system
+        res_x = solve_banded((rows, rows1), band_matrix, b)
 
         df[i, :] = res_x[::2]
         d2f[i, :] = res_x[1::2]
+
     return df, d2f
+
 
 import time
 
@@ -638,4 +636,8 @@ def part2q2():
 
 if __name__=='__main__':
     x=0 #please do not remove
-    #Add code here to call functions used to generate the figures included in your report.
+    # Add code here to call functions used to generate the figures included in your report.
+    part1q1b()
+    part1q1c()
+    part1q2()
+    part2q2()
