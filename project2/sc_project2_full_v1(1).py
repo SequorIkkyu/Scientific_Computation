@@ -579,7 +579,7 @@ def part2q2():
 
     """
 
-        import time
+    import time
 
     # Define the multiscale test function
     def multiscale_function(x, y, k1=8 * np.pi / 5, k2=2 * np.pi):
